@@ -27,6 +27,5 @@
     "scripts/ui.js",
     "scripts/util.js"
   ],
-  "socket": true,
-  "protected": true
+  "socket": true
 }
