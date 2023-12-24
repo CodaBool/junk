@@ -1,0 +1,28 @@
+permissions:
+  contents: write
+on:
+  push:
+    branchs:
+      - main
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      # - name: get version and store module
+      #   run: |
+      #     echo "version=$(cat module.json | jq -r .version)" >> $GITHUB_ENV
+      #     echo "DATA=$(cat module.json | jq -c | sed 's/"/\\"/g')" >> $GITHUB_ENV
+      # - uses: cloudflare/wrangler-action@v3
+      #   with:
+      #     apiToken: ${{ secrets.CLOUDFLARE_TOKEN }}
+      #     accountId: ${{ secrets.ACCOUNT_ID }}
+      #     command: r2 object put module/terminal-v${{ env.version }} -f terminal.zip
+      - name: cleanup and zip
+        run: |
+          rm -rf .git .github
+          rm *.md
+          rm *.sh
+          zip -r terminal.zip .
+      - uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')

@@ -1,0 +1,344 @@
+{{#if error}}
+  <div style="width: 100%; font-size: 1.4em; margin-top: 20vh;">
+    <p style="width: 100%; text-align: center;"><i class="fa-solid fa-message-exclamation fa-bounce" style="margin-right:1em;"></i> {{error}}</p>
+  </div>
+{{else}}
+<script type="module">
+  import { successLines, unlockDoor, ASCII, revealMap } from "/modules/terminal/scripts/util.js"
+  import { audio } from "/modules/terminal/scripts/hooks.js"
+
+  if (!pages) {
+    var pages
+  }
+
+  async function showContent(index, content, title, wallId) {
+    const contentBox = document.querySelector('.terminal-textbox')
+    const buttons = document.querySelectorAll('.terminal-button')
+
+    // Remove 'selected' class from all buttons
+    buttons.forEach(button => {
+      if (button.classList.contains("terminal-selected")) {
+        button.classList.remove('terminal-selected')
+      }
+    })
+
+
+    console.log("clicking button", index)
+    // Add 'selected' class to the clicked button
+    buttons[index].classList.add('terminal-selected')
+
+    // set content and title
+    const parser = new DOMParser()
+    const html = parser.parseFromString(content, 'text/html')
+    while (contentBox.firstChild) {
+      contentBox.removeChild(contentBox.firstChild)
+    }
+    contentBox.appendChild(html.body.firstChild)
+    $(".terminal-title").text(title)
+
+    // scroll to top
+    contentBox.scrollTop = 0
+
+    if ("{{click}}") {
+      await audio.click.load()
+      audio.click.play({volume: audio.volume})
+    }
+    
+    if (wallId) {
+      const locked = isLocked(wallId, true)
+      if (!locked) return
+      if (game.user.isGM) {
+        await unlockDoor({ wid: wallId, sid: game.scenes.viewed.id, name: game.user.name })
+      } else {
+        game.socket.emit('module.terminal', { action: "unlock", wid: wallId, sid: game.scenes.viewed.id, name: game.user.name })
+      }
+      ui.notifications.info("🔓 Door unlocked " + (successLines.get(game.system.id) ?? ""))
+    } else if (content === ASCII.ATLAS) {
+      if (game.user.isGM) {
+        revealMap(canvas.scene.id)
+      } else {
+        game.socket.emit('module.terminal', { action: "explore", sid: game.scenes.viewed.id, name: game.user.name })
+      }
+      ui.notifications.info("🗺️ Map revealed " + (successLines.get(game.system.id) ?? ""))
+    }
+  }
+
+  window.terminalCloseWindow = async function() {
+    if (Number("{{perm}}") < 2 || game.user.isGM) {
+      if (audio.close.src) {
+        await audio.close.load()
+        audio.close.play({volume: audio.volume})
+      }
+      $("#terminal-overlay").css("display", "block")
+      $("#terminal-modal").css("display", "block")
+      $("#terminal-modal")[0].showModal()
+    } else {
+      $(".terminal-window").find(".header-button").click()
+    }
+    if (game.user.isGM) {
+      $('#terminal-modal p').before('<p style="color: red">This is a copy of what players would see when closing out of a terminal, purely for demonstration purposes. Neither button will do anything. 🐱</p><br/>')
+    }
+  }
+
+  window.terminalModalConfirm = function() {
+    const jid = game.settings.get("terminal", "tiles")["{{id}}"]
+    game.socket.emit('module.terminal', {
+      action: "publish", jid
+    })
+    $("#terminal-overlay").css("display", "none")
+    $("#terminal-modal").css("display", "none")
+    $("#terminal-modal")[0].close()
+    $(".terminal-window").find(".header-button").click()
+  }
+
+  window.terminalModalCancel = function() {
+    $("#terminal-overlay").css("display", "none")
+    $("#terminal-modal").css("display", "none")
+    $("#terminal-modal")[0].close()
+    $(".terminal-window").find(".header-button").click()
+  }
+
+  function readDB() {
+    const id = game.settings.get("terminal", "tiles")["{{id}}"]
+    const journal = game.journal.get(id)
+    pages = []
+    for (const page of journal.pages) {
+      // only add pages that the user has permissions for
+      if (page.permission !== CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE) {
+        // wrap in div since its easier to insert that way
+        pages.push({
+          title: page.name,
+          content: `<div>${page.text.content}</div>`,
+        })
+      }
+    }
+  }
+
+  function generateHTML() {
+    const sibling = document.getElementById("terminal-folders")
+    for (const i in pages) {
+      if (typeof pages[i] !== "object") continue
+      const div = document.createElement("div")
+      div.className = "terminal-button"
+      div.textContent = pages[i].title
+      div.onclick = () => showContent(i, pages[i].content, pages[i].title)
+      sibling.appendChild(div)
+    }
+
+    const flags = game.scenes.viewed.tiles.get("{{id}}").flags["terminal"]
+    const unsplit = flags?.unlockIds?.replace(/\s/g, '')
+    const split = unsplit.split(",")
+
+    // remove invalid ids 
+    const ids = split.filter(id => isLocked(id))
+
+    let size = pages.length
+
+    console.log("generated pages. total size", size)
+    ids.forEach((id, i) => {
+      const locked = isLocked(id)
+      if (!locked) return
+      const div = document.createElement("div")
+      div.className = "terminal-button"
+      div.textContent = `Unlock Door ${i + 1}`
+      console.log("adding listener for index", size)
+      const newVal = size
+      div.onclick = () => showContent(newVal, ASCII.DOOR, "door unlocked", id)
+      size++
+      sibling.appendChild(div)
+    })
+
+
+    if ({{revealBtn}}) {
+      console.log("doing reveal map btn for index", size)
+      const div = document.createElement("div")
+      div.className = "terminal-button"
+      div.textContent = "Download map data"
+      div.onclick = () => showContent(size, ASCII.ATLAS, "map revealed")
+      sibling.appendChild(div)
+    }
+  }
+
+  function isLocked(id, notify) {
+    if (id === "") return
+    const wall = canvas.walls.get(id)
+    if (!wall) {
+      if (game.user.isGM) {
+        ui.notifications.error(`Terminal | an invalid wall ID of "${id}" was used. Update this terminal to use a valid wall ID.`, {permanent: true})
+      } else {
+        game.socket.emit('module.terminal', { action: "notify", message: `${game.user.name} opened a terminal with an invalid door ID of "${id}" at ${game.scenes.viewed.name}. You may need to manually unlock door(s). Update this terminal to use a valid door ID.`})
+      }
+      return
+    }
+    if (wall.document?.ds !== CONST.WALL_DOOR_STATES.LOCKED && notify) {
+      ui.notifications.info("Door has already been unlocked")
+    }
+    return wall.document?.ds === CONST.WALL_DOOR_STATES.LOCKED
+  }
+
+  async function readAudio() {
+    audio.startup = new Sound("{{startup}}")
+    if ("{{startup}}") {
+      await audio.startup.load()
+      audio.startup.play({volume: audio.volume})
+    }
+
+    setTimeout(() => {
+      if ($(".terminal-window").length && "{{ambient}}") {
+        audio.ambient = new Sound("{{ambient}}", {loop: true})
+        audio.ambient.load().then(a => {
+          audio.ambient.play({ loop: true, volume: audio.volume * .5 })
+        })
+      }
+    }, 4_150)
+
+    audio.click = new Sound("{{click}}")
+    audio.close = new Sound("{{close}}")
+  }
+
+  function assignColors() {
+    $(".terminal-titlebar").css("background-color", "{{base}}")
+    $(".terminal-textbox").css("border", `3px solid {{base}}`)
+    $(".terminal-textbox").css("border-top", `20px solid {{base}}`)
+    $(".terminal-title").css("background-color", "{{shadow}}")
+    $(".terminal-title").css("color", "{{highlight}}")
+    $(".terminal-button").css("border", `2px solid {{base}}`)
+    $(".terminal-buttons").css("color", "{{highlight}}")
+    $("#terminal-bar").css("background-color", "{{highlight}}")
+    $("#terminal-splash").css("color", "{{highlight}}")
+    $("#terminal-modal").css("border", `2px solid {{shadow}}`)
+    // hide old header button
+    $('.terminal-window .close').css('display', 'none')
+    // have content scale to browser height
+    $('.terminal-textbox').height($(window).height() * 0.5)
+  }
+
+  async function init() {
+    if ("{{error}}") return
+    readAudio()
+    readDB()
+    generateHTML()
+    assignColors()
+    generateBackground()
+    fakeLoading()
+  }
+
+  function fakeLoading() {
+    const loadingBar = document.getElementById('terminal-bar');
+    let width = 0
+    const interval = setInterval(() => {
+      if (width >= 100) {
+        clearInterval(interval)
+        terminalStopLoading()
+      } else {
+        width++
+        loadingBar.style.width = width + '%'
+      }
+    }, 25)
+  }
+
+  window.terminalStopLoading = function() {
+    $("#terminal-splash").css("display", "none")
+    $("#terminal-bar").css("display", "none")
+    $(".terminal-main").css("display", "block")
+  }
+
+  function generateBackground() {
+    // find luminance
+    // remove # character
+    const hex = "{{base}}".replace(/^#/, '')
+    var r = parseInt(hex.slice(0, 2), 16)
+    var g = parseInt(hex.slice(2, 4), 16)
+    var b = parseInt(hex.slice(4, 6), 16)
+
+    const relativeLuminance = 0.2126 * Math.pow(r / 255, 2.2) +
+                              0.7152 * Math.pow(g / 255, 2.2) +
+                              0.0722 * Math.pow(b / 255, 2.2);
+    // Define a threshold
+    // Return true if the color is light, false if it's dark
+    const bright = relativeLuminance > 0.5
+
+    if (bright) {
+      $('.terminal-close').css('color', "black")
+    } else {
+      $('.terminal-close').css('color', "white")
+    }
+
+    if ("{{background}}") {
+      let opacity = Number("{{opacity}}")
+      if (Number.isNaN(opacity)) {
+        ui.notifications.error("Terminal | Opacity invalid, please use a number value between 0 and 1 for {{name}} style", {permanent: true})
+        opacity = .5
+      }
+      const ext = "{{background}}".split('.').pop()
+      if (!Object.keys(CONST.VIDEO_FILE_EXTENSIONS).includes(ext)) {
+        const css = {
+          'background-image': `linear-gradient(rgba(0,0,0,0.9), rgba(0,0,0,${1 - opacity})), url("{{background}}")`,
+          'background-size': 'cover',
+          'background-position': 'center',
+        }
+        $('.terminal-main').css(css)
+        $('#terminal-splash').css(css)
+      }
+      return
+    }
+
+    const cv = document.getElementById("terminal-noise")
+    cv.width = 800
+    cv.height = 800
+    const maxRadius = Math.max((cv.width / 2), (cv.height / 2));
+    const ctx = cv.getContext("2d");
+    const imageData = ctx.createImageData(cv.width, cv.height);
+
+    // WARN: bad performance, can only run once on startup
+    for (let y = 0; y < cv.height; y++) {
+      for (let x = 0; x < cv.width; x++) {
+        const distanceToCenter = Math.sqrt((x - (cv.width / 2)) ** 2 + (y - (cv.height / 2)) ** 2);
+        const opacity = 1 - (distanceToCenter / maxRadius); // Opacity decreases with distance from center
+
+        const pixelIndex = (y * cv.width + x) * 4
+        imageData.data[pixelIndex] = Math.floor(Math.random() * r); // Red channel
+        imageData.data[pixelIndex + 1] = Math.floor(Math.random() * g); // Green channel
+        imageData.data[pixelIndex + 2] = Math.floor(Math.random() * b); // Blue channel
+        imageData.data[pixelIndex + 3] = Math.floor(opacity * 80); // Alpha channel (opacity)
+      }
+    }
+    ctx.putImageData(imageData, 0, 0);
+  }
+  $(document).ready(init)
+</script>
+<canvas id="terminal-noise"></canvas>
+<video id="terminal-video" autoplay muted loop style="width: {{size}}px; height: {{size}}px; opacity: {{opacity}}">
+  <source src="{{background}}" type="video/mp4" />
+</video>
+<div onclick="terminalStopLoading()" id="terminal-splash">
+  <a onclick="terminalCloseWindow()" class="terminal-close"><i class='fa-solid fa-xmark'></i></a>
+  <pre id="terminal-ascii">{{ascii}}</pre>
+  <div id="terminal-loading">
+    <div id="terminal-bar"></div>
+  </div>
+</div>
+<div class="terminal-main">
+  <div class="terminal-titlebar"> PERSONAL TERMINAL<a onclick="terminalCloseWindow()" class="terminal-close"><i class='fa-solid fa-xmark'></i></a></div>
+  <div class="terminal-container">
+    <div class="terminal-buttons">
+      <p>FOLDERS</p>
+      <div id="terminal-folders"></div>
+    </div>
+    <div class="terminal-content" id="content">
+    <div class="terminal-title"></div>
+    <div class="terminal-textbox"></div>
+    </div>
+  </div>
+</div>
+{{/if}}
+
+<!-- The dimmed background -->
+<div id="terminal-overlay"></div>
+
+<!-- The modal dialog -->
+<dialog id="terminal-modal">
+  <p>Would you like to reveal this terminal data to your party?</p>
+  <button class="terminal-modal-btn" onclick="terminalModalConfirm()">Yes, reveal</button>
+  <button class="terminal-modal-btn" onclick="terminalModalCancel()">No, keep private</button>
+</dialog>

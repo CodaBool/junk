@@ -1,0 +1,141 @@
+<script>
+  window.terminalFilePicker = async (name, type) => {
+    if (!$(`input[name="${name}"]`).val()) {
+      new FilePicker({
+        type,
+        callback: async path => {
+          $(`input[name="${name}"]`).val(path)
+          if ($(`#terminal-refresh-form`).length) $(`#terminal-refresh-form`).click()
+        }
+      }).browse()
+      return
+    }
+    new Dialog({
+      title: "Clear or Select",
+      content: `<p style="font-size:1.3em">Would you like to clear this input or select a file?</p><br/>`,
+      buttons: {
+        clear: {
+          icon: '<i class="fa-solid fa-broom-wide"></i>',
+          label: "clear input",
+          callback: () => {
+            $(`input[name="${name}"]`).val("")
+            if ($(`#terminal-refresh-form`).length) $(`#terminal-refresh-form`).click()
+          }
+        },
+        deny: {
+          icon: '<i class="fa-solid fa-file-magnifying-glass"></i>',
+          label: "select a file",
+          callback: () => {
+            new FilePicker({
+              type,
+              callback: async path => {
+                $(`input[name="${name}"]`).val(path)
+                if ($(`#terminal-refresh-form`).length) $(`#terminal-refresh-form`).click()
+              }
+            }).browse()
+          }
+        },
+      },
+    }).render(true)
+  }
+</script>
+
+{{#if error}}
+  <div style="width: 100%; font-size: 1.4em; margin-top: 20vh;">
+    <p style="width: 100%; text-align: center;"><i class="fa-solid fa-message-exclamation fa-bounce" style="margin-right:1em;"></i> {{error}}</p>
+  </div>
+{{else}}
+
+{{#if readOnly}}
+<p style="font-size:1.5em; text-align:center;">This style is read only</p>
+{{/if}}
+
+<form>
+  <div class="form-group slim">
+    <label>🏷️ Name</label>
+    <input name="name" value="{{name}}" {{readonlyIf readOnly}}>
+    <p class="hint">An identifier for this style</p>
+  </div>
+
+  <div class="form-group slim">
+    <label>🎨 Shadow</label>
+    <input name="shadow" type="color" value="{{shadow}}" {{readonlyIf readOnly}}>
+    <p class="hint">The darker color for the Terminal. (used in title background, modal border)</p>
+  </div>
+  <br />
+
+  <div class="form-group slim">
+    <label>🎨 Base</label>
+    <input name="base" type="color" value="{{base}}" {{readonlyIf readOnly}}>
+    <p class="hint">The midtone color for the Terminal (used in title background, content border, folder border)</p>
+  </div>
+  <br />
+
+  <div class="form-group slim">
+    <label>🎨 Highlight</label>
+    <input name="highlight" type="color" value="{{highlight}}" {{readonlyIf readOnly}}>
+    <p class="hint">The lighter color for the Terminal (used in title, button, splash text color. loading bar)</p>
+  </div>
+  <br />
+
+  <div class="form-group slim">
+    <label>🔊 Ambient</label>
+    <input name="ambient" value="{{ambient}}" onclick="terminalFilePicker('ambient', 'audio')" {{readonlyIf readOnly}}>
+    <p class="hint">audio file for the ambient noise of the Terminal</p>
+  </div>
+  <br />
+
+  <div class="form-group slim">
+    <label>🔊 Startup</label>
+    <input name="startup" value="{{startup}}" onclick="terminalFilePicker('startup', 'audio')" {{readonlyIf readOnly}}>
+    <p class="hint">audio file for the startup noise of the Terminal</p>
+  </div>
+  <br />
+
+  <div class="form-group slim">
+    <label>🔊 Close</label>
+    <input name="close" value="{{close}}" onclick="terminalFilePicker('close', 'audio')" {{readonlyIf readOnly}}>
+    <p class="hint">audio file for when closing out of the Terminal</p>
+  </div>
+  <br />
+
+  <div class="form-group slim">
+    <label>🔊 Click</label>
+    <input name="click" value="{{click}}" onclick="terminalFilePicker('click', 'audio')" {{readonlyIf readOnly}}>
+    <p class="hint">audio file for when clicking on any folder button in the Terminal</p>
+  </div>
+  <br />
+
+  <div class="form-group slim">
+    <label>🖼 Background</label>
+    <input name="background" value="{{background}}" onclick="terminalFilePicker('background', 'imagevideo')" {{readonlyIf readOnly}}>
+    <p class="hint">An image or video to display as the background. If left empty the background will be filled based on your "Base" color.</p>
+  </div>
+  <br />
+
+  <div class="form-group slim">
+    <label>🖼 Background Opacity</label>
+    <input name="opacity" value="{{opacity}}" {{readonlyIf readOnly}}>
+    <p class="hint">The opacity for the background image or video. 1 is max opacity, 0 is fully transparent. Does not apply if the above "Background" field is left empty.</p>
+  </div>
+  <br />
+
+{{#if readOnly}}
+{{else}}
+  <p style="color: grey; text-align: center;">This ASCII art will be on the Loading screen. In order to get the best results follow these steps:</p>
+  <ol style="margin: 2em;">
+    <li>go to this ASCII generator <a href="https://patorjk.com/software/taag">site</a></li>
+    <li>pick your style and text</li>
+    <li>click the "Select & Copy" button at the very bottom left of the linked site</li>
+    <li>In this form click into the text area below. Select all the text with a shortcut (control / command + a). Or click and drag to select all the text</li>
+    <li>Paste your copied text below to overwrite your previous ASCII art. The value will be saved on closing the window</li>
+  </ol>
+  <textarea rows="10" cols="30" name="ascii" {{readonlyIf readOnly}}>{{ascii}}</textarea>
+  <h1 style="margin:.3em;">Preview</h1>
+{{/if}}
+<pre style="font-size: 9px; margin-top: 20px; margin-bottom: 20px; font-family: monospace;">
+{{ascii}}
+</pre>
+  <button data-action="refresh" hidden id="terminal-refresh-form"></button>
+</form>
+{{/if}}

@@ -1,0 +1,182 @@
+#terminal-ascii {
+  font-size: 12px;
+  margin-top: 10vh;
+  text-align: center;
+  font-family: monospace;
+}
+#terminal-splash {
+  z-index: 1;
+  position: relative;
+}
+.terminal-close {
+  float: right;
+  font-size: 1.5em;
+  position: relative;
+  top: -3px;
+  margin-right: 10px;
+}
+#terminal-loading {
+  width: 50%;
+  height: 30px;
+  opacity: .5;
+  border: 4px solid white;
+  margin: 4em auto 0 auto;
+  display: block;
+}
+#terminal-bar {
+  width: 0;
+  height: 19px;
+  transition: width .23s;
+  top: 2px;
+  position: relative;
+  left: 2px;
+  display: block;
+}
+#terminal-noise {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+}
+.terminal-buttons p {
+  text-align: center;
+  text-decoration: underline;
+}
+#terminal-folders {
+  overflow: auto;
+  max-height: 65vh;
+}
+#terminal-form {
+  font-size: 1.2em;
+  line-height: 1em;
+}
+#terminal-form input {
+  cursor: pointer;
+}
+
+.terminal-container {
+  display: flex;
+}
+.terminal-buttons {
+  width: 30%;
+  margin-top: 10px;
+
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.terminal-button {
+  padding: 10px;
+  margin: 10px;
+  text-align: center;
+  background-color: #000000;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.terminal-selected {
+  background-color: #ffffff1d;
+  border: 2px solid white !important;
+  border-right: 10px solid white !important;
+  border-left: 10px solid white !important;
+}
+.terminal-line {
+  width: 2px;
+  background-color: #333;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(33.33% - 1px);
+  display: none;
+  z-index: -1;
+}
+.terminal-title {
+  border: 2px solid rgba(255,255,255,.4);
+  height: 30px;
+  margin-bottom: 1em;
+  padding-bottom: 1.2em;
+  font-size: 1.5em;
+}
+.terminal-textbox {
+  padding: 20px;
+  text-align: left;
+  background-color: rgba(0,0,0,.8);
+  overflow: auto;
+}
+.terminal-titlebar {
+  color: black;
+  flex: none;
+  padding-left: 10px
+}
+.terminal-main {
+  z-index: 1;
+  display: none;
+  color: white;
+}
+.terminal-window ::-webkit-scrollbar-thumb {
+  background-color: grey;
+  border: none;
+}
+.terminal-content {
+  flex: 2;
+  width: 70%;
+  padding: 20px 0 20px 20px;
+  text-align: center;
+  position: relative;
+}
+.terminal-content pre {
+  text-wrap: wrap !important;
+}
+.terminal-editor .editor {
+  border: 1px solid grey;
+}
+
+/* modal */
+#terminal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+}
+#terminal-modal {
+  display: none;
+  position: fixed;
+  /* border: none; */
+  color: white;
+  border-radius: 16px;
+  background-color: rgba(20, 20, 20, 0.95);
+  padding: 20px;
+  z-index: 2;
+  text-align: center;
+}
+#terminal-modal button {
+  padding: 10px 10px;
+  color: white;
+  background: black;
+  margin-top: 10px;
+  transition: background 0.1s;
+}
+#terminal-modal button:hover {
+  background: rgba(40, 40, 40, 0.9);
+}
+
+/* skilled */
+.terminal-skilled section {
+  color: white !important;
+  background: black !important;
+  overflow: hidden !important;
+}
+
+.terminal-btn-icon {
+  flex: 0;
+}
+#terminal-video {
+  z-index: 1;
+  position: absolute;
+  object-fit: cover;
+}

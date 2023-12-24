@@ -1,0 +1,147 @@
+<canvas id="canv" width={{size}} height={{size}}></canvas>
+<script>
+  if (!p) {
+
+    var p=new Array();
+    var mx=0;			// mouse x
+    var my=0;			// mouse y	
+    var radius=1;	// radius
+    var coef=0;		// coef
+    let w=0;
+    let h=0;
+    var ctx=null
+  }
+
+  function Pa(ox,oy,c,s) {
+    this.x=0;		  // center x coordinate
+    this.y=0;		  // center y coordinate
+    this.ox=ox;	  // offset x
+    this.oy=oy;	  // offset y
+    this.c=c;		  // colour
+    this.speed=s;	// speed
+    this.sx=0;		// shake x
+    this.sy=0;		// shake y
+  }
+
+  function init() {
+    const a=document.getElementById('canv')
+    ctx=a.getContext('2d');
+
+    w=a.width;
+    h=a.height;
+    mx=w/2;
+    my=h/2
+
+    //if ({{performance}}) {
+    //  // add text
+    //  ctx.font = "24px serif"
+    //  ctx.fillStyle = 'grey'
+    //  ctx.textAlign = "center"
+    //  ctx.fillText("You've found a computer terminal", (w/2), (h/2)- 40)
+    //  ctx.fillText("but getting access won't be easy...", (w/2), (h/2))
+    //  return
+    //}
+
+    a.addEventListener('mousemove', function(evt) {
+      var r=a.getBoundingClientRect();
+      mx=evt.clientX-r.left;
+      my=evt.clientY-r.top;
+
+      // 0,0 is the center of canvas.
+      dx=w/2-mx;
+      dy=h/2-my;
+      
+      coef = Math.sqrt(dx*dx + dy*dy) / ((w+h)/14);
+    },false)
+      
+    // loop function that recycles "for"
+    myLoop(0)
+    
+    // Animate
+    animate()
+  }
+
+
+  $(document).ready(init)
+
+  // Clear canvas, update positions.
+  function animate() {
+
+    ctx.clearRect(0,0,w,h);
+    
+    if (game.settings.get("terminal", "screensaver")) {
+      myLoop(1)
+    }
+    
+    // Canvas rectangle
+    ctx.beginPath();
+    ctx.lineWidth = 1;
+    ctx.rect(0, 0, w,h);
+    ctx.stroke();
+
+    // add text
+    ctx.font = "24px serif"
+    ctx.fillStyle = 'grey'
+    ctx.textAlign = "center"
+    ctx.fillText("You've found a computer terminal", (w/2), (h/2)- 40)
+    ctx.fillText("but getting access won't be easy...", (w/2), (h/2))
+
+    if (game.settings.get("terminal", "screensaver")) {
+      window.setTimeout(animate, 24)
+    }
+  }
+
+  //Perform initialization or update positions. Hack - recycle the function.
+  //functionality=0 then function update positions.
+  //functionality=1 then function does initialization.
+  function myLoop(functionality) {
+
+    // create number of points based on performance mode number
+    // 0 = low
+    // 1 = medium
+    // 2 = high
+    // 3 = max
+    
+    for (var i=100 * ({{performance}} + 2);i>=0;i--) {
+      if(functionality) {
+        // Reduce code- there are many places that use p[i].
+        l=p[i];	
+        
+        // Update position using custom Xenon theorem (half path between two points)
+        // in this case a proportional distance between source and target given by .t
+        l.x+=(mx-l.x)/l.speed;
+        l.y+=(my-l.y)/l.speed;
+        
+        l.sx=Math.random();
+        l.sy=Math.random();
+        ctx.beginPath();
+        
+        // Use "arc" to draw circle, but 6.28318-coef for special effect.
+        // 3 is the radius of the points
+        ctx.arc(l.x+l.ox+l.sx, l.y+l.oy+l.sy, 3,0,6.28318-coef);
+        ctx.fillStyle=l.c;
+        ctx.fill();
+        ctx.strokeStyle=l.c;
+        ctx.stroke();
+      } else {
+        // Convert to radian.(will effect length/width of system
+        angle = (137.5077 * Math.PI / 180 * i);	
+        
+        // Each 5 loops, perform radius variation. Higher the mod #, narrower the partical tunnel
+        if ((i % 6) == 0)						
+          radius +=2;
+        
+        // Hack: use speed to generate color and make it depend on radius.
+        speed = radius + 1; // 4 default
+        
+        // Create and initialize particle item. 
+        pr=new Pa(
+          Math.cos(angle)*radius,
+          Math.sin(angle)*radius,
+          'rgba('+speed*4+','+speed+','+speed*12+','+(0.8)+')',
+          speed);
+        p.push(pr);
+      }
+    }
+  }
+</script>

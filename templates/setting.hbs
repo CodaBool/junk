@@ -1,0 +1,16 @@
+<script>
+  window.terminalClick = e => {
+    $('#terminal-form input:radio').filter(`[value="${e}"]`).click()
+  }
+</script>
+<form id="terminal-form">
+  <p style="color: darkslategrey; text-align: center; font-size:.9em;">Link a Journal to allow this Terminal to dynamically pull content.</p>
+  {{#each data}}
+    {{#if this.checked}}
+      <input type="radio" name="journal" value="{{this.id}}" checked> <span style="cursor: pointer;" onclick="terminalClick('{{this.id}}')">{{this.name}}</span>
+    {{else}}
+      <input type="radio" name="journal" value="{{this.id}}"> <span style="cursor: pointer;" onclick="terminalClick('{{this.id}}')">{{this.name}}</span>
+    {{/if}}
+    <br />
+  {{/each}}
+</form>

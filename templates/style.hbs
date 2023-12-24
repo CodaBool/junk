@@ -1,0 +1,21 @@
+<form id="terminal-form">
+  <p style="color: darkslategrey; text-align: center; font-size:.9em;">This is your collection of styles. You can edit existing ones or create new ones.</p>
+  {{#each styles}}
+    {{#if this.readOnly}}
+      <div style="display: flex; align-items: center;">
+        <button data-action="view" id="{{this.uuid}}" class="terminal-btn-icon"><i class="fa-solid fa-eye" style="pointer-events: none;"></i></button>
+        <p style="margin-left: 10px; font-size: 1.5em; color: gray;">{{this.name}}</p>
+      </div>
+    {{else}}
+      <div style="display: flex; align-items: center;">
+        <button data-action="put" id="{{this.uuid}}" class="terminal-btn-icon"><i class="fa-solid fa-pencil" style="pointer-events: none;"></i></button>
+        <button data-action="delete" id="{{this.uuid}}" class="terminal-btn-icon"><i class="fas fa-trash" style="pointer-events: none;"></i></button>
+        <p style="margin-left: 10px; font-size: 1.5em; color: black;">{{this.name}}</p>
+      </div>
+    {{/if}}
+  {{/each}}
+  <button data-action="post" style="margin-top:100px"><i class="fas fa-plus"></i> Create a new style</button>
+  <footer>
+		<button data-action="refresh" hidden id="terminal-refresh"><i class="fa-solid fa-arrows-rotate"></i> Refresh Styles</button>
+	</footer>
+</form>
