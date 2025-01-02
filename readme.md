@@ -81,10 +81,11 @@ https://itch.io/api/1/KEY/game/terminal/download_keys
 
 
 const response = await fetch("https://itch.io/api/1/KEY/game/terminal/download_keys", {
+const response = await fetch("https://itch.io/api/1/vVpWPNE1znZzkLAVZD0QZIB9RQqG1yGil5qAw1NU/credentials/info", {
+const response = await fetch("https://itch.io/api/1/vVpWPNE1znZzkLAVZD0QZIB9RQqG1yGil5qAw1NU/me", {
   method: 'GET',
   headers: {
     'Content-Type': 'application/json',
-    'Authorization': "Bearer vVpWPNE1znZzkLAVZD0QZIB9RQqG1yGil5qAw1NU"
   },
 });
 
