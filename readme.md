@@ -91,3 +91,9 @@ const response = await fetch("https://itch.io/api/1/vVpWPNE1znZzkLAVZD0QZIB9RQqG
 
 const result = await response.json()
 console.log(result)
+
+
+2331647
+
+
+https://itch.io/api/1/vVpWPNE1znZzkLAVZD0QZIB9RQqG1yGil5qAw1NU/game/2331647/download_keys
