@@ -20,6 +20,7 @@ export default async function Home() {
       fetch(`/api?access_token=${accessToken}`)
         .then((res) => res.json())
         .then((json) => {
+          console.log(json)
           if (json?.purchases?.length) {
             setPurchase(json.purchases[0])
           }
