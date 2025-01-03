@@ -1,16 +1,27 @@
-import '../styles/global.css';
+'use client'
+import { useEffect } from 'react'
+import '../styles/global.css'
 
-export default function Home() {
+export default async function Home() {
+  const {hash} = window.location
+  if (!hash) {
+    console.log("no hash", window.location)
+    return (<h1>hash required</h1>)
+  }
+
+  useEffect(() => {
+    console.log("sending request with token", hash.slice(1))
+    fetch(`/api?access_token=${hash.slice(1)}`)
+      .then((res) => res.json())
+      .then((json) => console.log("result", json));
+  }, [])
+
+
   return (
     <main>
       <h1>
-        Welcome
+        check console
       </h1>
     </main>
   )
 }
-
-
-// https://itch.io/user/oauth?client_id=eccba9c5de53252133c889684fa5483f&scope=profile%3Ame&response_type=token&redirect_uri=http%3A%2F%2Flocalhost%3A30000%2Fgame
-
-// https://itch.io/user/oauth?client_id=eccba9c5de53252133c889684fa5483f&scope=profile%3Ame&response_type=token&redirect_uri=https%3A%2F%2Fjunk-git-main-codabools-projects.vercel.app%2F
