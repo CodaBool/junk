@@ -21,8 +21,8 @@ export default async function Home() {
         .then((res) => res.json())
         .then((json) => {
           console.log(json)
-          if (json?.purchases?.length) {
-            setPurchase(json.purchases[0])
+          if (json?.data?.purchases?.length) {
+            setPurchase(json.data.purchases[0])
           }
         })
     }
