@@ -4,8 +4,8 @@ export async function GET(request) {
   console.log("url", request.url)
   const { searchParams } = new URL(request.url)
   console.log("searchParams", searchParams)
-  let access_token = searchParams.get('access_token')
-  if (!access_token) access_token = searchParams.get("access_token=access_token")
+  const access_token = searchParams.get('access_token')
+  // if (!access_token) access_token = searchParams.get("access_token=access_token")
   console.log("access_token", access_token)
 
   const response = await fetch(`https://itch.io/api/1/${access_token}/me`, {
@@ -17,7 +17,7 @@ export async function GET(request) {
   const result = await response.json()
   console.log("me", result)
 
-  const id = result.data.user.id
+  const id = result.user.id
 
   const res = await fetch(`https://itch.io/api/1/${process.env.ITCH_TOKEN}/game/2331647/purchases?user_id=${id}`, {
     headers: {
