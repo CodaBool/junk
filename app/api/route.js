@@ -30,4 +30,5 @@ export async function GET(request) {
   console.log("purchase", data)
  
   return Response.json({ data })
+  // pretty please
 }
