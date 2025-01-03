@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import '../styles/global.css'
 
-export default async function Home() {
+export default function Home() {
   const [purchase, setPurchase] = useState()
 
   useEffect(() => {
