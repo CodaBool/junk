@@ -19,6 +19,8 @@ export async function GET(request) {
 
   const id = result.user.id
 
+  console.log("using api key of", process.env.ITCH_TOKEN, "and id", id, "url", `https://itch.io/api/1/${process.env.ITCH_TOKEN}/game/2331647/purchases?user_id=${id}`)
+
   const res = await fetch(`https://itch.io/api/1/${process.env.ITCH_TOKEN}/game/2331647/purchases?user_id=${id}`, {
     headers: {
       'Content-Type': 'application/json',
