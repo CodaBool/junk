@@ -1,4 +1,6 @@
-export async function GET() {
+
+
+export async function GET(request) {
   const { searchParams } = new URL(request.url)
   const access_token = searchParams.get('access_token')
 
