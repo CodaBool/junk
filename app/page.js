@@ -1,9 +1,9 @@
 'use client'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import '../styles/global.css'
 
 export default async function Home() {
-
+  const [purchase, setPurchase] = useState()
 
   useEffect(() => {
     const {hash} = window.location
@@ -19,16 +19,25 @@ export default async function Home() {
 
       fetch(`/api?access_token=${accessToken}`)
         .then((res) => res.json())
-        .then((json) => console.log("result", json));
+        .then((json) => {
+          if (json?.data?.purchases) {
+            if (json?.data?.purchases.length) {
+              setPurchase(json?.data?.purchases[0])
+            }
+          }
+        })
     }
   }, [])
 
 
   return (
     <main>
-      <h1>
-        check console
-      </h1>
+      {purchase ? <div>
+        <h1>Bought on: {purchase.created_at}</h1>
+        <h1>email: {purchase.email}</h1>
+        <h1>source: {purchase.source}</h1>
+        <h1>status: {purchase.status}</h1>
+      </div> : <h1>request sent</h1>}
     </main>
   )
 }
