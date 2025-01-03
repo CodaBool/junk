@@ -1,8 +1,11 @@
 
 
 export async function GET(request) {
+  console.log("url", request.url)
   const { searchParams } = new URL(request.url)
+  console.log("searchParams", searchParams)
   const access_token = searchParams.get('access_token')
+  console.log("access_token", access_token)
 
   const response = await fetch(`https://itch.io/api/1/${access_token}/me`, {
     method: 'GET',

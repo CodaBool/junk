@@ -9,7 +9,7 @@ export default async function Home() {
     const {hash} = window.location
     if (hash) {
       console.log("sending request with token", hash.slice(1))
-      fetch(`/api?access_token=${hash.slice(1)}`)
+      fetch(`/api?access_token%3D${hash.slice(1)}`)
         .then((res) => res.json())
         .then((json) => console.log("result", json));
     }
